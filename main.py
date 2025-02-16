@@ -2,15 +2,16 @@ import mediapipe as mp
 import cv2
 import csv
 import os
+import time
 
 mp_drawing = mp.solutions.drawing_utils
-mp_holistic = mp.solutions.holistic
+mp_hands = mp.solutions.hands
 
 # Webcan input
 cap = cv2.VideoCapture(0)
 
 # Make a detection hands pose
-with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
+with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
     while cap.isOpened():
         ret, frame = cap.read()
 
@@ -19,7 +20,7 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
         image.flags.writeable = False
 
         # Make detection
-        results = holistic.process(image)
+        results = hands.process(image)
 
         # Recolor image back to BGR for rendering
         image.flags.writeable = True
@@ -36,30 +37,16 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
 
             # Write header if file is empty
             if file.tell() == 0:
-                writer.writerow(['Landmark', 'x', 'y', 'z'])
+                writer.writerow(['Hand', 'Landmark', 'x', 'y', 'z'])
 
-            # Write right hand landmarks
-            if results.right_hand_landmarks:
-                for idx, landmark in enumerate(results.right_hand_landmarks.landmark):
-                    writer.writerow([f'Landmark {idx}', landmark.x, landmark.y, landmark.z])
+            # Write hand landmarks
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    for idx, landmark in enumerate(hand_landmarks.landmark):
+                        writer.writerow(['Right' if results.multi_handedness[0].classification[0].label == 'Right' else 'Left', idx, landmark.x, landmark.y, landmark.z])
 
-        # 2. Right hand
-        mp_drawing.draw_landmarks(image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS,
-                                 mp_drawing.DrawingSpec(color=(80, 22, 10), thickness=2, circle_radius=4),
-                                 mp_drawing.DrawingSpec(color=(80, 44, 121), thickness=2, circle_radius=2)
-                                 )
-
-        # 3. Left Hand
-        mp_drawing.draw_landmarks(image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS,
-                                 mp_drawing.DrawingSpec(color=(121, 22, 76), thickness=2, circle_radius=4),
-                                 mp_drawing.DrawingSpec(color=(121, 44, 250), thickness=2, circle_radius=2)
-                                 )
-
-        # 4. Pose Detections
-        mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_holistic.HAND_CONNECTIONS,
-                                 mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=4),
-                                 mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2)
-                                 )
+                        # Draw hand landmarks
+                        mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
         cv2.imshow('Hand Detection', image)
 
