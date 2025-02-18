@@ -1,8 +1,8 @@
 import mediapipe as mp
 import cv2
-# import csv
 import os
-import math
+from calculation_amplitude import CalculationAmplitudeClass
+from vector_drawer import VectorDrawer
 
 class HandDetection:
     # Initialize the HandDetection class
@@ -14,8 +14,8 @@ class HandDetection:
         self.data_dir = 'hand_positions'
         os.makedirs(self.data_dir, exist_ok=True)
         self.file_path = os.path.join(self.data_dir, 'hand_landmarks.csv')
-        self.calc_amplitude = self.CalculationAmplitudeClass()
-        self.vector_drawer = self.VectorDrawer()
+        self.calc_amplitude = CalculationAmplitudeClass()
+        self.vector_drawer = VectorDrawer()
     
     # Process the frame
     def process_frame(self):
@@ -63,41 +63,3 @@ class HandDetection:
                 break
         self.cap.release()
         cv2.destroyAllWindows()
-    
-    class CalculationAmplitudeClass:
-        # This class is responsible for calculating the amplitude of the hand movement
-        def create_vector(self, coord1, coord2):
-            # Make the calculation of the vector
-            return (coord2.x - coord1.x, coord2.y - coord1.y)
-
-        def modulation_vector(self, vector):
-            # Calculate the modulus of the vector
-            return (vector[0]**2 + vector[1]**2) ** 0.5
-        
-        def convert_degrees(self, radians):
-            # Convert radians to degrees
-            return radians * 180 / 3.14159265
-        
-        def calculate_amplitude(self, vector_1, vector_2):
-            # Product scalar
-            scalar = ((vector_1[0] * vector_2[0]) + (vector_1[1] * vector_2[1]))    
-
-            # Modulus of the vectors
-            result_modulus = self.modulation_vector(vector_1) * self.modulation_vector(vector_2)
-
-            # Cosine of the angle between the vectors
-            cosine = scalar / result_modulus
-
-            # Return angle in degrees
-            return self.convert_degrees(math.acos(cosine))
-        
-    class VectorDrawer:
-        def draw_vector(self, image, coord1, coord2, color=(0, 255, 0), thickness=2):
-            # Draw the conection points on the image
-            start_point = (int(coord1.x * image.shape[1]), int(coord1.y * image.shape[0]))
-            end_point = (int(coord2.x * image.shape[1]), int(coord2.y * image.shape[0]))
-            cv2.line(image, start_point, end_point, color, thickness)
-        
-if __name__ == "__main__":
-    hand_detection = HandDetection()
-    hand_detection.run()
