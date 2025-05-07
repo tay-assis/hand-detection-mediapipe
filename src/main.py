@@ -1,4 +1,3 @@
-import cv2
 from hand_detection import HandDetection
 
 if __name__ == "__main__":

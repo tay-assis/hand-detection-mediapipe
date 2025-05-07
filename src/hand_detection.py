@@ -7,13 +7,14 @@ from vector_drawer import VectorDrawer
 class HandDetection:
     # Initialize the HandDetection class
     def __init__(self, min_detection_confidence=0.5, min_tracking_confidence=0.5):
+        # Detection some one hand.
         self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_hands = mp.solutions.hands.Hands(min_detection_confidence=min_detection_confidence,
+        self.mp_hands = mp.solutions.hands.Hands(max_num_hands=1, min_detection_confidence=min_detection_confidence,
                                                  min_tracking_confidence=min_tracking_confidence)
         self.cap = cv2.VideoCapture(0)
-        self.data_dir = 'hand_positions'
-        os.makedirs(self.data_dir, exist_ok=True)
-        self.file_path = os.path.join(self.data_dir, 'hand_landmarks.csv')
+        # self.data_dir = 'hand_positions'
+        # os.makedirs(self.data_dir, exist_ok=True)
+        # self.file_path = os.path.join(self.data_dir, 'hand_landmarks.csv')
         self.calc_amplitude = CalculationAmplitudeClass()
         self.vector_drawer = VectorDrawer()
     
