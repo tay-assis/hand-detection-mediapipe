@@ -6,7 +6,10 @@ from vector_drawer import VectorDrawer
 
 class HandDetection:
     # Initialize the HandDetection class
-    def __init__(self, min_detection_confidence=0.5, min_tracking_confidence=0.5):
+    def __init__(self, finger1='THUMB_TIP', finger2='INDEX_FINGER_TIP', min_detection_confidence=0.5, min_tracking_confidence=0.5):
+        self.finger1 = finger1
+        self.finger2 = finger2
+        
         # Detection some one hand.
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands.Hands(max_num_hands=1, min_detection_confidence=min_detection_confidence,
@@ -37,16 +40,16 @@ class HandDetection:
             for hand_landmarks in results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(image, hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
                 wrist = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.WRIST]
-                index_finger = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.INDEX_FINGER_TIP]
-                thumb = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.THUMB_TIP]
+                finger1_landmark = hand_landmarks.landmark[getattr(mp.solutions.hands.HandLandmark, self.finger1)]
+                finger2_landmark = hand_landmarks.landmark[getattr(mp.solutions.hands.HandLandmark, self.finger2)]
                 
                 # Draw vectors
-                self.vector_drawer.draw_vector(image, wrist, index_finger, color=(0, 255, 0))
-                self.vector_drawer.draw_vector(image, wrist, thumb, color=(0, 255, 0))
+                self.vector_drawer.draw_vector(image, wrist, finger1_landmark, color=(0, 255, 0))
+                self.vector_drawer.draw_vector(image, wrist, finger2_landmark, color=(0, 255, 0))
                 
                 # Calculate amplitude
-                vector_1 = self.calc_amplitude.create_vector(wrist, index_finger)
-                vector_2 = self.calc_amplitude.create_vector(wrist, thumb)
+                vector_1 = self.calc_amplitude.create_vector(wrist, finger1_landmark)
+                vector_2 = self.calc_amplitude.create_vector(wrist, finger2_landmark)
                 angle = self.calc_amplitude.calculate_amplitude(vector_1, vector_2)
                 
                 # Display angle
