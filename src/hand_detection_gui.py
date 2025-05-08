@@ -8,22 +8,22 @@ import os
 class HandSelectionGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Selecione os dedos para calcular o ângulo")
+        self.root.title("Hand-ROM")
 
         # Variáveis para armazenar os dedos selecionados
         self.finger1 = None
         self.finger2 = None
 
-        # Dicionário com posições manuais dos dedos (imagem tem 400x400px)
+        # Dicionário com posições manuais dos dedos e a localização (x,y) de cada em polegadas
         self.finger_positions = {
             "THUMB_TIP": (80, 148),
-            "INDEX_FINGER_TIP": (191, 35),
+            "INDEX_FINGER_TIP": (190, 35),
             "MIDDLE_FINGER_TIP": (241, 30),
-            "RING_FINGER_TIP": (275, 53),
-            "PINKY_TIP": (308, 110)
+            "RING_FINGER_TIP": (276, 53),
+            "PINKY_TIP": (310, 115)
         }
 
-        # Carregar imagem
+        # Carregar imagem dentro do canvas
         base_dir = os.path.dirname(__file__)
         img_path = os.path.join(base_dir, "images", "png_hand_transp.png")
         hand_img = Image.open(img_path).resize((400, 400))
@@ -37,7 +37,7 @@ class HandSelectionGUI:
         self.radio_buttons = {}
         for name, (x, y) in self.finger_positions.items():
             btn = tk.Radiobutton(self.canvas, text="", value=name, indicatoron=False,
-                                 width=2, height=1, bg="lightblue", command=lambda n=name: self.select_finger(n))
+                                 width=2, height=1, border=0.5, bg="lightblue", command=lambda n=name: self.select_finger(n))
             self.canvas.create_window(x, y, window=btn)
             self.radio_buttons[name] = btn
 
@@ -55,12 +55,12 @@ class HandSelectionGUI:
             self.status_label.config(text=f"Primeiro dedo: {finger_name}")
         elif self.finger2 is None and finger_name != self.finger1:
             self.finger2 = finger_name
-            self.status_label.config(text=f"Dedo 1: {self.finger1}, Dedo 2: {finger_name}")
+            self.status_label.config(text=f"Primeiro dedo: {self.finger1}\n Segundo dedo: {finger_name}")
         else:
             # Resetar seleção
             self.finger1 = finger_name
             self.finger2 = None
-            self.status_label.config(text=f"Reiniciando seleção. Dedo 1: {finger_name}")
+            self.status_label.config(text=f"Primeiro dedo: {finger_name}")
 
         # Atualiza visual
         for name, btn in self.radio_buttons.items():
@@ -69,6 +69,7 @@ class HandSelectionGUI:
             else:
                 btn.config(bg="lightblue")
 
+    # Método que inicia a tela interativa com o usuário 
     def start_detection(self):
         if self.finger1 and self.finger2:
             hand_detection = HandDetection(finger1=self.finger1, finger2=self.finger2)
