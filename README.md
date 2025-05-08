@@ -9,6 +9,7 @@ src
 ├── __init__.py
 ├── main.py
 ├── hand_detection.py
+├── hand_detection_gui.py
 ├── calculation_amplitude.py
 └── vector_drawer.py
 requirements.txt
