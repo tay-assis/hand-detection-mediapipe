@@ -1,6 +1,7 @@
-import cv2
-from hand_detection import HandDetection
+from tkinter import Tk
+from hand_detection_gui import HandSelectionGUI
 
 if __name__ == "__main__":
-    hand_detection = HandDetection()
-    hand_detection.run()
+    root = Tk()
+    gui = HandSelectionGUI(root)
+    root.mainloop()
