@@ -76,19 +76,20 @@ class HandDetection:
 
                 # Adicionando valores
                 with open(arquivo_csv, 'a', encoding='utf-8') as f:
-                    f.write(f"{angle}\n")
+                    f.write(f"{angle:.2f}".replace('.', ',') + "\n")
                 
                 # O resultado do ângulo é exibido
                 cv2.putText(image, f'Angulo: {angle:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
     # Executa a detecção da mão através da câmera
     def run(self):
+        contador = 1
 
         # Criar a pasta 'dados' se não existir
         os.makedirs("datas", exist_ok=True)
 
         # Criar o caminho do arquivo com nome dinâmico
-        arquivo_csv = f"datas/angle_between_{self.finger1}_and_{self.finger2}.csv"
+        arquivo_csv = f"datas/{contador}_angle_between_{self.finger1}_and_{self.finger2}.csv"
 
         # Cabeçalho
         with open(arquivo_csv, 'w', encoding='utf-8') as f:
@@ -103,6 +104,8 @@ class HandDetection:
             self.draw_landmarks(image, results, arquivo_csv)
             cv2.imshow('Hand Detection', image)
             if cv2.waitKey(10) & 0xFF == 27:
+                contador += 1  # incrementa para o próximo arquivo
                 break
+
         self.cap.release()
         cv2.destroyAllWindows()
