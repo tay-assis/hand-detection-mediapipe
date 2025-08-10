@@ -1,8 +1,9 @@
 from email.mime import image
+import sys
 from unittest import result
 import mediapipe as mp
 import cv2
-
+import os
 import numpy as np
 from calculation_amplitude import CalculationAmplitudeClass
 from vector_drawer import VectorDrawer
@@ -14,16 +15,12 @@ class HandDetection:
         self.finger2 = finger2
 
         self.mp_selfie_segmentation = mp.solutions.selfie_segmentation.SelfieSegmentation(model_selection=1)
-
         
         # Detecta apenas uma mão.
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands.Hands(max_num_hands=1, min_detection_confidence=min_detection_confidence,
                                                  min_tracking_confidence=min_tracking_confidence)
         self.cap = cv2.VideoCapture(0)
-        # self.data_dir = 'hand_positions'
-        # os.makedirs(self.data_dir, exist_ok=True)
-        # self.file_path = os.path.join(self.data_dir, 'hand_landmarks.csv')
         self.calc_amplitude = CalculationAmplitudeClass()
         self.vector_drawer = VectorDrawer()
     
@@ -61,7 +58,7 @@ class HandDetection:
 
 
     # Desenha os pontos das mãos detectados 
-    def draw_landmarks(self, image, results):
+    def draw_landmarks(self, image, results, arquivo_csv):
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(image, hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
@@ -77,24 +74,46 @@ class HandDetection:
                 vector_1 = self.calc_amplitude.create_vector(wrist, finger1_landmark)
                 vector_2 = self.calc_amplitude.create_vector(wrist, finger2_landmark)
                 angle = self.calc_amplitude.calculate_amplitude(vector_1, vector_2)
+
+                # Adicionando valores
+                with open(arquivo_csv, 'a', encoding='utf-8') as f:
+                    f.write(f"{angle:.2f}".replace('.', ',') + "\n")
                 
                 # O resultado do ângulo é exibido
                 cv2.putText(image, f'Angulo: {angle:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
     # Executa a detecção da mão através da câmera
     def run(self):
+        contador = 1
+
+        # Descobre o diretório onde está o .exe ou .py
+        if getattr(sys, 'frozen', False):
+            BASE_DIR = os.path.dirname(sys.executable)  # Se for executável
+        else:
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Se for script
+
+        # Pasta de saída
+        PASTA_DATAS = os.path.join(BASE_DIR, "datas")
+        os.makedirs(PASTA_DATAS, exist_ok=True)
+
+        # Criar o caminho do arquivo com nome dinâmico
+        arquivo_csv = os.path.join(PASTA_DATAS, f"{contador}_angle_between_{self.finger1}_and_{self.finger2}.csv")
+
+        # Cabeçalho
+        with open(arquivo_csv, 'w', encoding='utf-8') as f:
+            f.write(f"{self.finger1} e {self.finger2}\n")
+
         while self.cap.isOpened():
             image, results = self.process_frame()
             if image is None:
                 break
-
-            # Aplica fundo colorido com segmentação corporal
-            # image = self.background_color(image)
             
             # Desenha os vetores e ângulo sobre a imagem final
-            self.draw_landmarks(image, results)
+            self.draw_landmarks(image, results, arquivo_csv)
             cv2.imshow('Hand Detection', image)
             if cv2.waitKey(10) & 0xFF == 27:
+                contador += 1  # incrementa para o próximo arquivo
                 break
+
         self.cap.release()
         cv2.destroyAllWindows()
