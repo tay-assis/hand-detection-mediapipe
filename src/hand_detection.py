@@ -1,4 +1,5 @@
 from email.mime import image
+import sys
 from unittest import result
 import mediapipe as mp
 import cv2
@@ -85,11 +86,18 @@ class HandDetection:
     def run(self):
         contador = 1
 
-        # Criar a pasta 'dados' se não existir
-        os.makedirs("datas", exist_ok=True)
+        # Descobre o diretório onde está o .exe ou .py
+        if getattr(sys, 'frozen', False):
+            BASE_DIR = os.path.dirname(sys.executable)  # Se for executável
+        else:
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Se for script
+
+        # Pasta de saída
+        PASTA_DATAS = os.path.join(BASE_DIR, "datas")
+        os.makedirs(PASTA_DATAS, exist_ok=True)
 
         # Criar o caminho do arquivo com nome dinâmico
-        arquivo_csv = f"datas/{contador}_angle_between_{self.finger1}_and_{self.finger2}.csv"
+        arquivo_csv = os.path.join(PASTA_DATAS, f"{contador}_angle_between_{self.finger1}_and_{self.finger2}.csv")
 
         # Cabeçalho
         with open(arquivo_csv, 'w', encoding='utf-8') as f:
