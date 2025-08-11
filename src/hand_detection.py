@@ -1,3 +1,4 @@
+import ctypes
 from email.mime import image
 import sys
 from unittest import result
@@ -7,6 +8,13 @@ import os
 import numpy as np
 from calculation_amplitude import CalculationAmplitudeClass
 from vector_drawer import VectorDrawer
+
+def set_window_icon(window_name, icon_path):
+    hwnd = ctypes.windll.user32.FindWindowW(None, window_name)
+    if hwnd:
+        hicon = ctypes.windll.user32.LoadImageW(None, icon_path, 1, 0, 0, 0x00000010)
+        ctypes.windll.user32.SendMessageW(hwnd, 0x0080, 0, hicon)  # WM_SETICON (small)
+        ctypes.windll.user32.SendMessageW(hwnd, 0x0080, 1, hicon)  # WM_SETICON (large)
 
 class HandDetection:
     # Inicializa a classe HandDetection
@@ -23,7 +31,7 @@ class HandDetection:
         self.cap = cv2.VideoCapture(0)
         self.calc_amplitude = CalculationAmplitudeClass()
         self.vector_drawer = VectorDrawer()
-    
+
     # Processa cada frame do programa enquanto a câmera estiver ativa
     def process_frame(self):
         ret, frame = self.cap.read()
@@ -56,7 +64,6 @@ class HandDetection:
 
         return final_image
 
-
     # Desenha os pontos das mãos detectados 
     def draw_landmarks(self, image, results, arquivo_csv):
         if results.multi_hand_landmarks:
@@ -81,38 +88,46 @@ class HandDetection:
                 
                 # O resultado do ângulo é exibido
                 cv2.putText(image, f'Angulo: {angle:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-    # Executa a detecção da mão através da câmera
+    
     def run(self):
         contador = 1
 
         # Descobre o diretório onde está o .exe ou .py
         if getattr(sys, 'frozen', False):
-            BASE_DIR = os.path.dirname(sys.executable)  # Se for executável
+            BASE_DIR = os.path.dirname(sys.executable)
         else:
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Se for script
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
         # Pasta de saída
         PASTA_DATAS = os.path.join(BASE_DIR, "datas")
         os.makedirs(PASTA_DATAS, exist_ok=True)
 
-        # Criar o caminho do arquivo com nome dinâmico
+        # Criar o caminho do arquivo
         arquivo_csv = os.path.join(PASTA_DATAS, f"{contador}_angle_between_{self.finger1}_and_{self.finger2}.csv")
 
         # Cabeçalho
         with open(arquivo_csv, 'w', encoding='utf-8') as f:
             f.write(f"{self.finger1} e {self.finger2}\n")
 
+        # Cria a janela antes de exibir imagem
+        window_name = 'Hand Detection'
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+
+        # Define o ícone (Windows)
+        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "icon.ico"))
+        set_window_icon(window_name, icon_path)
+
         while self.cap.isOpened():
             image, results = self.process_frame()
             if image is None:
                 break
-            
-            # Desenha os vetores e ângulo sobre a imagem final
+
             self.draw_landmarks(image, results, arquivo_csv)
-            cv2.imshow('Hand Detection', image)
-            if cv2.waitKey(10) & 0xFF == 27:
-                contador += 1  # incrementa para o próximo arquivo
+            cv2.imshow(window_name, image)
+
+            # Fecha no ESC ou no botão X
+            if (cv2.waitKey(10) & 0xFF == 27) or cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) < 1:
+                contador += 1
                 break
 
         self.cap.release()
