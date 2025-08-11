@@ -1,7 +1,4 @@
-import ctypes
-from email.mime import image
 import sys
-from unittest import result
 import mediapipe as mp
 import cv2
 import os
