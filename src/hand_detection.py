@@ -9,13 +9,6 @@ import numpy as np
 from calculation_amplitude import CalculationAmplitudeClass
 from vector_drawer import VectorDrawer
 
-def set_window_icon(window_name, icon_path):
-    hwnd = ctypes.windll.user32.FindWindowW(None, window_name)
-    if hwnd:
-        hicon = ctypes.windll.user32.LoadImageW(None, icon_path, 1, 0, 0, 0x00000010)
-        ctypes.windll.user32.SendMessageW(hwnd, 0x0080, 0, hicon)  # WM_SETICON (small)
-        ctypes.windll.user32.SendMessageW(hwnd, 0x0080, 1, hicon)  # WM_SETICON (large)
-
 class HandDetection:
     # Inicializa a classe HandDetection
     def __init__(self, finger1='THUMB_TIP', finger2='INDEX_FINGER_TIP', min_detection_confidence=0.5, min_tracking_confidence=0.5):
@@ -109,13 +102,8 @@ class HandDetection:
         with open(arquivo_csv, 'w', encoding='utf-8') as f:
             f.write(f"{self.finger1} e {self.finger2}\n")
 
-        # Cria a janela antes de exibir imagem
+        # Nome da janela
         window_name = 'Hand Detection'
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-
-        # Define o ícone (Windows)
-        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "icon.ico"))
-        set_window_icon(window_name, icon_path)
 
         while self.cap.isOpened():
             image, results = self.process_frame()
