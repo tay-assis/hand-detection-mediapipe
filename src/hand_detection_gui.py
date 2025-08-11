@@ -1,5 +1,6 @@
 # hand_selection_gui.py
 
+import sys
 import tkinter as tk
 from PIL import Image, ImageTk
 from hand_detection import HandDetection
@@ -9,6 +10,12 @@ class HandSelectionGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Hand-ROM")
+
+        # Caminho para o ícone (fora da pasta src)
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "icon.ico")
+        self.root.iconbitmap(resource_path(os.path.abspath(icon_path)))
+
+        self.root.resizable(False, False)
 
         # Variáveis para armazenar os dedos selecionados
         self.finger1 = None
@@ -25,7 +32,8 @@ class HandSelectionGUI:
 
         # Carregar imagem dentro do canvas
         base_dir = os.path.dirname(__file__)
-        img_path = os.path.join(base_dir, "images", "png_hand_transp.png")
+        
+        img_path = resource_path(os.path.join("images", "png_hand_transp.png"))
         hand_img = Image.open(img_path).resize((400, 400))
         self.hand_photo = ImageTk.PhotoImage(hand_img)
 
@@ -46,16 +54,16 @@ class HandSelectionGUI:
         self.status_label.pack(pady=5)
 
         # Botão de iniciar
-        self.start_btn = tk.Button(self.root, text="Calcular Amplitude", command=self.start_detection)
+        self.start_btn = tk.Button(self.root, text="Calcular Amplitude", command=self.start_detection, bg="lightblue")
         self.start_btn.pack(pady=10)
 
     def select_finger(self, finger_name):
         if self.finger1 is None:
             self.finger1 = finger_name
-            self.status_label.config(text=f"Primeiro dedo: {finger_name}")
+            self.status_label.config(text=f"Primeiro dedo: {finger_name}", fg="black")
         elif self.finger2 is None and finger_name != self.finger1:
             self.finger2 = finger_name
-            self.status_label.config(text=f"Primeiro dedo: {self.finger1}\n Segundo dedo: {finger_name}")
+            self.status_label.config(text=f"Primeiro dedo: {self.finger1}\n Segundo dedo: {finger_name}", fg="black")
         else:
             # Resetar seleção
             self.finger1 = finger_name
@@ -76,3 +84,11 @@ class HandSelectionGUI:
             hand_detection.run()
         else:
             self.status_label.config(text="Selecione dois dedos antes de iniciar", fg="red")
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS  # criado pelo PyInstaller no onefile
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
