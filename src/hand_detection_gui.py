@@ -10,11 +10,6 @@ class HandSelectionGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Hand-ROM")
-
-        # Caminho para o ícone (fora da pasta src)
-        icon_path = os.path.join(os.path.dirname(__file__), "..", "icon.ico")
-        self.root.iconbitmap(resource_path(os.path.abspath(icon_path)))
-
         self.root.resizable(False, False)
 
         # Variáveis para armazenar os dedos selecionados
